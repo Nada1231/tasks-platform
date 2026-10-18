@@ -53,14 +53,14 @@ jobs:
           tags: ${{ env.IMAGE }}:${{ github.sha }}
 
       - name: Scanner l'image avec Trivy (échec si faille CRITICAL)
-        uses: aquasecurity/trivy-action@0.28.0   # vérifie la dernière version sur la page de l'action
-        with:
-          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
-          severity: CRITICAL
-          exit-code: "1"
-          ignore-unfixed: true
-          format: table
-          output: trivy-report.txt
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$PWD:/out" \
+            ghcr.io/aquasecurity/trivy:0.69.3 image \
+              --severity CRITICAL --exit-code 1 --ignore-unfixed \
+              --output /out/trivy-report.txt \
+              "$IMAGE:${{ github.sha }}"
 
       - name: Publier le rapport Trivy
         if: always()
